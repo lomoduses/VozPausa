@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101323" />
+  <meta name="description" content="Convierte tus textos en voz y practica con pausas configurables por bloques de palabras." />
+  <title>VozPausa | Lee, escucha y aprende a tu ritmo</title>
+  <style>
+:root {
+  color-scheme: dark;
+  --bg: #101323;
+  --bg-soft: #151a2d;
+  --panel: rgba(25, 30, 49, .88);
+  --panel-solid: #191e31;
+  --panel-2: #20263b;
+  --line: rgba(175, 187, 225, .12);
+  --line-strong: rgba(175, 187, 225, .2);
+  --text: #f2f3fb;
+  --muted: #a0a7c1;
+  --subtle: #737d9d;
+  --accent: #a78bfa;
+  --accent-2: #7c6cf2;
+  --cyan: #63d8d1;
+  --good: #72d6a3;
+  --shadow: 0 24px 70px rgba(0, 0, 0, .22);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: radial-gradient(ellipse at 50% -20%, rgba(111, 99, 209, .15), transparent 48%), var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea, select { font: inherit; }
+button { color: inherit; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, label:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.ambient { position: fixed; z-index: -1; border-radius: 50%; filter: blur(90px); pointer-events: none; opacity: .2; }
+.ambient-one { width: 340px; height: 340px; background: #6954d8; top: 260px; left: -230px; }
+.ambient-two { width: 320px; height: 320px; background: #287e91; top: 600px; right: -240px; opacity: .12; }
+.app-shell { width: min(1200px, calc(100% - 48px)); margin: 0 auto; }
+.topbar { height: 82px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.brand { display: inline-flex; gap: 11px; align-items: center; color: var(--text); font-size: 19px; letter-spacing: -.8px; font-weight: 780; text-decoration: none; }
+.brand-accent { color: var(--accent); }
+.brand sup { margin-left: 5px; color: var(--subtle); font-size: 8px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.brand-mark { width: 29px; height: 29px; border-radius: 9px; display: flex; align-items: center; justify-content: center; gap: 2px; background: linear-gradient(145deg, #a78bfa, #6e63e9); box-shadow: 0 5px 20px rgba(138, 113, 244, .28); }
+.brand-mark span { width: 2px; border-radius: 5px; background: #fff; display: block; }
+.brand-mark span:nth-child(1), .brand-mark span:nth-child(4) { height: 7px; opacity: .72; }
+.brand-mark span:nth-child(2) { height: 14px; }
+.brand-mark span:nth-child(3) { height: 10px; }
+.topbar-actions { display: flex; align-items: center; gap: 18px; }
+.local-badge { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 11px; font-weight: 550; }
+.status-dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; background: var(--good); box-shadow: 0 0 10px rgba(114, 214, 163, .55); }
+.status-dot.muted { background: #68718b; box-shadow: none; }
+.icon-button { width: 37px; height: 37px; display: grid; place-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 11px; cursor: pointer; transition: .2s ease; }
+.icon-button:hover { background: var(--panel-2); border-color: var(--line-strong); }
+.icon-button svg { width: 17px; height: 17px; fill: none; stroke: var(--muted); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.moon-icon { display: none; }
+.hero { padding: 54px 0 35px; max-width: 710px; }
+.eyebrow, .section-kicker { color: var(--cyan); font-size: 9px; font-weight: 800; letter-spacing: 1.8px; }
+.eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+.eyebrow-line { width: 23px; height: 1px; background: var(--cyan); }
+h1 { margin: 0; font-size: clamp(39px, 5.2vw, 62px); line-height: 1.045; letter-spacing: -2.9px; font-weight: 780; }
+h1 span { color: var(--accent); }
+.hero-copy { max-width: 540px; margin: 17px 0 0; color: var(--muted); font-size: 14px; line-height: 1.75; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(345px, .82fr); gap: 17px; align-items: stretch; }
+.panel { background: linear-gradient(145deg, rgba(29, 35, 56, .96), rgba(22, 27, 44, .94)); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+.editor-panel { padding: 23px 23px 18px; display: flex; flex-direction: column; min-height: 600px; }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; }
+.panel-heading h2, .progress-topline h2 { margin: 6px 0 0; font-size: 21px; font-weight: 700; letter-spacing: -.6px; }
+.live-count { color: var(--muted); padding: 6px 10px; border: 1px solid var(--line); background: rgba(255,255,255,.025); border-radius: 20px; font-size: 10px; font-weight: 650; }
+.editor-toolbar { margin-top: 22px; padding: 11px 0; display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 14px; }
+.text-button, .icon-text-button { display: inline-flex; align-items: center; gap: 7px; border: 0; padding: 4px 0; color: var(--muted); background: transparent; cursor: pointer; font-size: 11px; font-weight: 600; transition: color .2s ease; }
+.text-button:hover, .icon-text-button:hover { color: var(--text); }
+.text-button svg, .icon-text-button svg, .download-button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.file-button { cursor: pointer; }
+.icon-text-button { padding: 4px; }
+.textarea-wrap { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 370px; }
+textarea { display: block; width: 100%; flex: 1; resize: vertical; min-height: 330px; padding: 22px 3px 48px; color: var(--text); background: transparent; border: 0; outline: none; font-size: 14px; line-height: 1.9; letter-spacing: .05px; }
+textarea::placeholder { color: #727b99; opacity: .9; }
+textarea:focus-visible { outline: none; }
+.textarea-hint { position: absolute; left: 2px; bottom: 15px; display: flex; align-items: center; gap: 7px; color: var(--subtle); font-size: 10px; pointer-events: none; }
+.hint-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--good); }
+.editor-footer { min-height: 47px; display: flex; align-items: center; gap: 13px; border-top: 1px solid var(--line); padding-top: 12px; }
+.stat { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.stat strong { color: var(--text); font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--subtle); font-size: 9px; }
+.stat-divider { height: 14px; width: 1px; background: var(--line-strong); }
+.download-button { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: rgba(255,255,255,.025); color: var(--muted); font-size: 10px; font-weight: 650; cursor: pointer; transition: .2s; }
+.download-button:hover:not(:disabled) { color: var(--text); background: var(--panel-2); }
+.download-button:disabled { opacity: .4; cursor: not-allowed; }
+.studio-panel { padding: 23px 23px 19px; }
+.studio-heading { margin-bottom: 23px; }
+.audio-orb { width: 39px; height: 39px; display: flex; align-items: center; justify-content: center; gap: 3px; border: 1px solid rgba(167, 139, 250, .22); border-radius: 50%; background: rgba(167, 139, 250, .08); }
+.audio-orb span { width: 2px; border-radius: 4px; background: var(--accent); }
+.audio-orb span:nth-child(1), .audio-orb span:nth-child(5) { height: 7px; opacity: .5; }
+.audio-orb span:nth-child(2), .audio-orb span:nth-child(4) { height: 13px; }
+.audio-orb span:nth-child(3) { height: 18px; }
+.setting-group { padding: 0 0 18px; margin-bottom: 17px; border-bottom: 1px solid var(--line); }
+.setting-label { display: block; color: #e1e4f2; font-size: 11px; font-weight: 650; }
+.select-wrap { position: relative; margin-top: 9px; }
+.select-wrap select { appearance: none; width: 100%; padding: 11px 35px 11px 12px; color: var(--text); border: 1px solid var(--line-strong); border-radius: 9px; background: #20263a; font-size: 11px; outline: none; cursor: pointer; }
+.select-wrap select option { background: #20263a; color: var(--text); }
+.select-wrap > svg { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; fill: none; stroke: var(--muted); stroke-width: 1.8; pointer-events: none; }
+.voice-meta { display: flex; align-items: center; gap: 7px; margin-top: 8px; color: var(--subtle); font-size: 9px; }
+.voice-indicator { width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; }
+.setting-topline { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.value-pill { color: var(--accent); background: rgba(167, 139, 250, .11); border: 1px solid rgba(167, 139, 250, .18); border-radius: 6px; padding: 4px 7px; font-size: 10px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.range-input { width: 100%; height: 4px; margin: 16px 0 7px; appearance: none; background: linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--range-progress, 20%), #353c57 var(--range-progress, 20%), #353c57 100%); border-radius: 4px; cursor: pointer; outline: none; }
+.range-input::-webkit-slider-thumb { width: 14px; height: 14px; appearance: none; border: 3px solid #f3efff; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 3px rgba(167, 139, 250, .16); }
+.range-input::-moz-range-thumb { width: 9px; height: 9px; border: 3px solid #f3efff; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 3px rgba(167, 139, 250, .16); }
+.range-labels { display: flex; justify-content: space-between; color: var(--subtle); font-size: 9px; }
+.preset-row { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
+.preset { width: 27px; height: 25px; border: 1px solid var(--line-strong); border-radius: 6px; background: rgba(255,255,255,.025); color: var(--muted); font-size: 10px; cursor: pointer; transition: .2s; }
+.preset:hover { border-color: rgba(167,139,250,.5); color: var(--text); }
+.preset.active { color: #eee8ff; border-color: rgba(167,139,250,.65); background: rgba(167,139,250,.17); }
+.preset-caption { margin-left: 4px; color: var(--subtle); font-size: 9px; }
+.compact-setting { padding-bottom: 16px; margin-bottom: 15px; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 0 17px; margin-top: -2px; cursor: pointer; }
+.toggle-copy { display: flex; flex-direction: column; gap: 4px; }
+.toggle-copy strong { font-size: 10px; font-weight: 650; }
+.toggle-copy small { color: var(--subtle); font-size: 9px; }
+.switch { position: relative; width: 32px; height: 19px; flex: 0 0 auto; }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch-track { position: absolute; inset: 0; border: 1px solid #424a66; border-radius: 20px; background: #303751; transition: .2s; }
+.switch-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 11px; height: 11px; border-radius: 50%; background: #a0a7c1; transition: .2s; }
+.switch input:checked + .switch-track { background: rgba(126, 108, 242, .48); border-color: var(--accent-2); }
+.switch input:checked + .switch-track::after { left: 16px; background: #fff; }
+.switch input:focus-visible + .switch-track { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.session-actions { padding-top: 2px; }
+.play-button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 13px 16px; border: 0; border-radius: 10px; background: linear-gradient(105deg, #a68af5, #796bf0); box-shadow: 0 8px 22px rgba(116, 98, 226, .2); color: #fff; font-size: 12px; font-weight: 750; cursor: pointer; transition: transform .2s, filter .2s, box-shadow .2s; }
+.play-button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.07); box-shadow: 0 10px 25px rgba(116, 98, 226, .3); }
+.play-button:disabled { opacity: .55; cursor: not-allowed; }
+.play-button svg, .secondary-button svg, .skip-button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.play-button svg { fill: currentColor; stroke: none; }
+.secondary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.secondary-button { display: flex; justify-content: center; align-items: center; gap: 7px; padding: 9px 8px; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--muted); background: rgba(255,255,255,.025); font-size: 10px; font-weight: 650; cursor: pointer; transition: .2s; }
+.secondary-button:hover:not(:disabled), .skip-button:hover:not(:disabled) { color: var(--text); background: var(--panel-2); }
+.secondary-button:disabled, .skip-button:disabled { opacity: .35; cursor: not-allowed; }
+.stop-button svg { width: 13px; height: 13px; }
+.skip-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+.skip-button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 3px 0; color: var(--subtle); font-size: 9px; cursor: pointer; }
+.skip-button svg { width: 12px; height: 12px; }
+.progress-panel { margin-top: 17px; padding: 20px 23px 17px; }
+.progress-topline { display: flex; align-items: center; justify-content: space-between; }
+.progress-topline h2 { font-size: 18px; }
+.session-status { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 10px; font-weight: 650; }
+.progress-track { position: relative; height: 6px; margin-top: 20px; overflow: hidden; border-radius: 10px; background: #30364e; }
+.progress-fill { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7a6cef, #b18df7, #63d8d1); transition: width .35s ease; }
+.progress-glow { position: absolute; top: -4px; left: 0; width: 0%; height: 14px; border-radius: 50%; background: rgba(167,139,250,.55); filter: blur(8px); transition: width .35s ease; }
+.progress-meta { display: flex; justify-content: space-between; margin-top: 8px; color: var(--subtle); font-size: 9px; }
+.progress-meta strong { color: var(--accent); font-size: 10px; }
+.current-block { display: flex; align-items: center; gap: 13px; min-height: 82px; margin-top: 17px; padding: 14px 15px; border: 1px solid rgba(167,139,250,.16); border-radius: 11px; background: linear-gradient(100deg, rgba(167,139,250,.08), rgba(99,216,209,.025)); }
+.current-block-icon { width: 33px; height: 33px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 9px; color: var(--accent); background: rgba(167,139,250,.12); }
+.current-block-icon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+.current-block-copy { min-width: 0; }
+.current-block-copy span { color: var(--accent); font-size: 8px; letter-spacing: 1px; font-weight: 800; }
+.current-block-copy p { margin: 5px 0 0; color: #e5e7f5; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.progress-bottom { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 13px; color: var(--subtle); font-size: 9px; }
+.keyboard-hint { display: flex; align-items: center; gap: 5px; }
+kbd { padding: 2px 5px; border: 1px solid var(--line-strong); border-radius: 4px; background: rgba(255,255,255,.035); color: var(--muted); font: inherit; font-size: 8px; }
+.keyboard-hint i { font-style: normal; color: #56607c; }
+.tips-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 19px; padding: 23px 5px 27px; }
+.tip-item { display: flex; gap: 10px; align-items: flex-start; }
+.tip-icon { color: var(--cyan); font-size: 16px; line-height: 1.2; }
+.tip-item p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.tip-item strong { color: #e6e8f4; font-weight: 700; }
+.footer { min-height: 55px; display: flex; justify-content: space-between; align-items: center; gap: 15px; border-top: 1px solid var(--line); color: var(--subtle); font-size: 8px; letter-spacing: .45px; }
+.footer > span:first-child { font-weight: 750; letter-spacing: 1px; }
+.footer-dot { color: var(--accent); padding: 0 5px; }
+.footer > span:last-child { font-weight: 450; letter-spacing: 0; font-size: 9px; }
+.toast { position: fixed; z-index: 20; left: 50%; bottom: 25px; transform: translate(-50%, 15px); opacity: 0; pointer-events: none; padding: 10px 15px; border: 1px solid var(--line-strong); border-radius: 9px; background: #262d45; color: var(--text); font-size: 11px; box-shadow: var(--shadow); transition: .25s ease; max-width: calc(100% - 32px); text-align: center; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Tema claro */
+body.light-theme { color-scheme: light; --bg: #f1f2fa; --bg-soft: #f8f8fd; --panel: rgba(255,255,255,.92); --panel-solid: #fff; --panel-2: #eef0fa; --line: rgba(56, 63, 103, .12); --line-strong: rgba(56, 63, 103, .2); --text: #20243b; --muted: #65708f; --subtle: #8790aa; --shadow: 0 20px 55px rgba(53, 58, 105, .09); background: radial-gradient(ellipse at 50% -20%, rgba(130, 113, 236, .13), transparent 48%), var(--bg); }
+body.light-theme .panel { background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(250,250,255,.96)); }
+body.light-theme .select-wrap select { background: #f3f4fb; color: var(--text); }
+body.light-theme .select-wrap select option { background: #fff; color: var(--text); }
+body.light-theme .setting-label, body.light-theme .toggle-copy strong { color: #343954; }
+body.light-theme .current-block-copy p { color: #414763; }
+body.light-theme .tip-item strong { color: #303651; }
+body.light-theme textarea::placeholder { color: #929ab1; }
+body.light-theme .moon-icon { display: block; }
+body.light-theme .sun-icon { display: none; }
+body.light-theme .toast { background: #fff; color: #252a44; }
+body.light-theme .brand { color: #252a44; }
+body.light-theme .progress-track { background: #e1e3f0; }
+body.light-theme .range-input { background: linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--range-progress, 20%), #dfe2f0 var(--range-progress, 20%), #dfe2f0 100%); }
+
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .editor-panel { min-height: 500px; }
+  .textarea-wrap { min-height: 300px; }
+  .studio-panel { display: grid; grid-template-columns: 1fr 1fr; column-gap: 25px; }
+  .studio-heading { grid-column: 1 / -1; }
+  .voice-group, .toggle-row { grid-column: 1 / -1; }
+  .session-actions { align-self: end; }
+}
+@media (max-width: 620px) {
+  .app-shell { width: min(100% - 28px, 500px); }
+  .topbar { height: 67px; }
+  .local-badge { display: none; }
+  .hero { padding: 40px 0 25px; }
+  h1 { font-size: 43px; letter-spacing: -2.2px; }
+  .hero-copy { font-size: 12px; }
+  .editor-panel, .studio-panel { padding: 18px 16px 15px; border-radius: 14px; }
+  .editor-panel { min-height: 475px; }
+  .editor-toolbar { margin-top: 18px; }
+  .toolbar-left, .toolbar-right { gap: 10px; }
+  .text-button { font-size: 10px; }
+  textarea { font-size: 13px; min-height: 280px; }
+  .editor-footer { gap: 8px; flex-wrap: wrap; }
+  .stat { gap: 4px; }
+  .stat span { font-size: 8px; }
+  .download-button { padding: 7px; font-size: 9px; }
+  .studio-panel { display: block; }
+  .progress-panel { padding: 18px 16px 15px; }
+  .progress-bottom { align-items: flex-start; flex-direction: column; }
+  .tips-row { grid-template-columns: 1fr; gap: 12px; padding: 20px 3px 23px; }
+  .tip-item p { font-size: 10px; }
+  .footer { padding: 13px 0; flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+  </style>
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#inicio" aria-label="VozPausa, inicio">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span>voz<span class="brand-accent">pausa</span><sup>beta</sup></span>
+      </a>
+      <div class="topbar-actions">
+        <span class="local-badge"><span class="status-dot"></span> Funciona en tu navegador</span>
+        <button class="icon-button" id="themeButton" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+          <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.2A8.5 8.5 0 0 1 8.8 3.8 8.6 8.6 0 1 0 20.2 15.2Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="inicio">
+      <section class="hero">
+        <div class="eyebrow"><span class="eyebrow-line"></span> TU TEXTO, A TU RITMO</div>
+        <h1>Escucha. Pausa.<br /><span>Aprende mejor.</span></h1>
+        <p class="hero-copy">Pega lo que necesitas estudiar y conviértelo en una lectura en voz alta con pausas a tu medida. Sin prisas y sin perder el hilo.</p>
+      </section>
+
+      <section class="workspace" aria-label="Herramienta de lectura en voz alta">
+        <section class="panel editor-panel">
+          <div class="panel-heading">
+            <div>
+              <div class="section-kicker">01 / CONTENIDO</div>
+              <h2>Tu texto</h2>
+            </div>
+            <span class="live-count" id="wordCountBadge">0 palabras</span>
+          </div>
+
+          <div class="editor-toolbar">
+            <div class="toolbar-left">
+              <button class="text-button" id="pasteButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="4" width="12" height="16" rx="2"/><path d="M16 4V3a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h3"/></svg> Pegar</button>
+              <button class="text-button" id="sampleButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21z"/><path d="M4 5.5v13A2.5 2.5 0 0 1 6.5 16H20M8 7h8M8 10h6"/></svg> Probar ejemplo</button>
+            </div>
+            <div class="toolbar-right">
+              <label class="text-button file-button" for="fileInput"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4"/><path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg> Importar .txt</label>
+              <input id="fileInput" type="file" accept=".txt,text/plain" hidden />
+              <button class="icon-text-button" id="clearButton" type="button" title="Borrar texto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></button>
+            </div>
+          </div>
+
+          <div class="textarea-wrap">
+            <textarea id="textInput" spellcheck="true" placeholder="Escribe o pega aquí tus apuntes, una lectura, una definición o cualquier texto que quieras escuchar..." aria-label="Texto que se leerá en voz alta"></textarea>
+            <div class="textarea-hint"><span class="hint-dot"></span> Tu texto no se envía a ningún servidor.</div>
+          </div>
+
+          <div class="editor-footer">
+            <div class="stat"><strong id="wordCount">0</strong><span>palabras</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat"><strong id="charCount">0</strong><span>caracteres</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat"><strong id="blockEstimate">0</strong><span>bloques aprox.</span></div>
+            <button class="download-button" id="downloadButton" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4"/><path d="M4 17v3h16v-3"/></svg> Guardar .txt</button>
+          </div>
+        </section>
+
+        <aside class="panel studio-panel">
+          <div class="panel-heading studio-heading">
+            <div>
+              <div class="section-kicker">02 / CONFIGURACIÓN</div>
+              <h2>Tu sesión</h2>
+            </div>
+            <div class="audio-orb" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
+
+          <div class="setting-group voice-group">
+            <label class="setting-label" for="voiceSelect">Voz</label>
+            <div class="select-wrap">
+              <select id="voiceSelect" aria-label="Seleccionar voz"><option value="">Cargando voces…</option></select>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+            </div>
+            <div class="voice-meta"><span class="voice-indicator"></span><span id="voiceStatus">Usa las voces disponibles en tu dispositivo</span></div>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-topline"><label class="setting-label" for="wordsRange">Pausa cada</label><output class="value-pill" id="wordsValue" for="wordsRange">4 palabras</output></div>
+            <input id="wordsRange" class="range-input" type="range" min="1" max="20" step="1" value="4" />
+            <div class="range-labels"><span>1 palabra</span><span>20 palabras</span></div>
+            <div class="preset-row" aria-label="Pausas rápidas">
+              <button class="preset active" type="button" data-words="4">4</button>
+              <button class="preset" type="button" data-words="3">3</button>
+              <button class="preset" type="button" data-words="5">5</button>
+              <button class="preset" type="button" data-words="8">8</button>
+              <span class="preset-caption">palabras por bloque</span>
+            </div>
+          </div>
+
+          <div class="setting-group compact-setting">
+            <div class="setting-topline"><label class="setting-label" for="pauseRange">Duración de la pausa</label><output class="value-pill" id="pauseValue" for="pauseRange">2.0 s</output></div>
+            <input id="pauseRange" class="range-input" type="range" min="0" max="8" step="0.5" value="2" />
+            <div class="range-labels"><span>Sin pausa</span><span>8 segundos</span></div>
+          </div>
+
+          <div class="setting-group compact-setting">
+            <div class="setting-topline"><label class="setting-label" for="rateRange">Velocidad de lectura</label><output class="value-pill" id="rateValue" for="rateRange">1.0×</output></div>
+            <input id="rateRange" class="range-input" type="range" min="0.6" max="1.5" step="0.1" value="1" />
+            <div class="range-labels"><span>Más lento</span><span>Más rápido</span></div>
+          </div>
+
+          <label class="toggle-row" for="paragraphToggle">
+            <span class="toggle-copy"><strong>Pausa extra entre párrafos</strong><small>Deja respirar las ideas</small></span>
+            <span class="switch"><input id="paragraphToggle" type="checkbox" checked /><span class="switch-track"></span></span>
+          </label>
+
+          <div class="session-actions">
+            <button class="play-button" id="playButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg><span>Comenzar lectura</span></button>
+            <div class="secondary-actions">
+              <button class="secondary-button" id="pauseButton" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h3v14H8zM15 5h3v14h-3z"/></svg> Pausar</button>
+              <button class="secondary-button stop-button" id="stopButton" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg> Detener</button>
+            </div>
+            <div class="skip-actions">
+              <button class="skip-button" id="repeatButton" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.4-6.4L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.4 6.4L3 16m0 5v-5h5"/></svg> Repetir bloque</button>
+              <button class="skip-button" id="skipButton" type="button" disabled>Siguiente bloque <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5v14l11-7zM19 5v14"/></svg></button>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="panel progress-panel" aria-label="Progreso de lectura">
+        <div class="progress-topline">
+          <div><div class="section-kicker">03 / EN VIVO</div><h2>Tu progreso</h2></div>
+          <span class="session-status" id="sessionStatus"><span class="status-dot muted"></span> En espera</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div><span class="progress-glow" id="progressGlow"></span></div>
+        <div class="progress-meta"><span id="progressLabel">Aún no has comenzado</span><strong id="progressPercent">0%</strong></div>
+        <div class="current-block" id="currentBlock">
+          <div class="current-block-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18m-5-13v8m10-8v8M3 9v6m18-6v6"/></svg></div>
+          <div class="current-block-copy"><span id="currentBlockLabel">EL BLOQUE ACTUAL APARECERÁ AQUÍ</span><p id="currentBlockText">Cuando inicies la lectura, verás el fragmento que se está reproduciendo.</p></div>
+        </div>
+        <div class="progress-bottom"><span id="completedLabel">0 de 0 bloques completados</span><span class="keyboard-hint"><kbd>Espacio</kbd> reproducir / pausar <i>·</i> <kbd>Esc</kbd> detener</span></div>
+      </section>
+
+      <section class="tips-row" aria-label="Consejos">
+        <div class="tip-item"><span class="tip-icon">✦</span><p><strong>Estudia por partes.</strong> Usa bloques de 3 a 5 palabras para memorizar sin saturarte.</p></div>
+        <div class="tip-item"><span class="tip-icon">◷</span><p><strong>Ajusta el ritmo.</strong> Una pausa más larga te da tiempo para repetir o escribir.</p></div>
+        <div class="tip-item"><span class="tip-icon">⌁</span><p><strong>Sin instalaciones.</strong> La voz depende de tu navegador y de tu dispositivo.</p></div>
+      </section>
+    </main>
+
+    <footer class="footer"><span>VOZPAUSA <span class="footer-dot">•</span> HECHO PARA APRENDER A TU RITMO</span><span>Tu texto permanece en este dispositivo.</span></footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+(() => {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
+  const state = {
+    voices: [],
+    blocks: [],
+    index: 0,
+    completed: 0,
+    status: 'idle', // idle | playing | paused | stopped | finished | error
+    timer: null,
+    awaitingNext: false,
+    currentUtterance: null,
+    toastTimer: null,
+  };
+
+  const elements = {
+    text: $('textInput'), wordCount: $('wordCount'), charCount: $('charCount'), blockEstimate: $('blockEstimate'),
+    wordCountBadge: $('wordCountBadge'), download: $('downloadButton'), file: $('fileInput'),
+    voice: $('voiceSelect'), voiceStatus: $('voiceStatus'), wordsRange: $('wordsRange'), wordsValue: $('wordsValue'),
+    pauseRange: $('pauseRange'), pauseValue: $('pauseValue'), rateRange: $('rateRange'), rateValue: $('rateValue'),
+    paragraphToggle: $('paragraphToggle'), play: $('playButton'), pause: $('pauseButton'), stop: $('stopButton'),
+    repeat: $('repeatButton'), skip: $('skipButton'), progressFill: $('progressFill'), progressGlow: $('progressGlow'),
+    progressLabel: $('progressLabel'), progressPercent: $('progressPercent'), sessionStatus: $('sessionStatus'),
+    currentBlockLabel: $('currentBlockLabel'), currentBlockText: $('currentBlockText'), completedLabel: $('completedLabel'),
+    toast: $('toast'),
+  };
+
+  const sampleText = 'La fotosíntesis es el proceso mediante el cual las plantas transforman la energía de la luz solar en energía química. Para realizarlo, absorben agua por las raíces y dióxido de carbono del aire. Con ayuda de la clorofila, producen glucosa y liberan oxígeno al ambiente. Este proceso es fundamental porque sostiene gran parte de las cadenas alimentarias y contribuye al equilibrio de los ecosistemas.';
+
+  function showToast(message) {
+    elements.toast.textContent = message;
+    elements.toast.classList.add('show');
+    window.clearTimeout(state.toastTimer);
+    state.toastTimer = window.setTimeout(() => elements.toast.classList.remove('show'), 2600);
+  }
+
+  function countWords(text) {
+    const trimmed = text.trim();
+    return trimmed ? trimmed.split(/\s+/u).length : 0;
+  }
+
+  function getParagraphs(text) {
+    return text.replace(/\r/g, '').trim().split(/\n\s*\n/u).map((p) => p.replace(/\n+/g, ' ').trim()).filter(Boolean);
+  }
+
+  function makeBlocks(text, wordsPerBlock) {
+    const paragraphs = getParagraphs(text);
+    const blocks = [];
+    paragraphs.forEach((paragraph, paragraphIndex) => {
+      const words = paragraph.split(/\s+/u);
+      for (let i = 0; i < words.length; i += wordsPerBlock) {
+        const slice = words.slice(i, i + wordsPerBlock);
+        blocks.push({
+          text: slice.join(' '),
+          paragraphEnd: i + wordsPerBlock >= words.length,
+          paragraphIndex,
+          wordCount: slice.length,
+        });
+      }
+    });
+    return blocks;
+  }
+
+  function updateStats() {
+    const text = elements.text.value;
+    const words = countWords(text);
+    const chars = text.length;
+    const blocks = words ? Math.ceil(words / Number(elements.wordsRange.value)) : 0;
+    elements.wordCount.textContent = words.toLocaleString('es-ES');
+    elements.charCount.textContent = chars.toLocaleString('es-ES');
+    elements.blockEstimate.textContent = blocks.toLocaleString('es-ES');
+    elements.wordCountBadge.textContent = `${words} ${words === 1 ? 'palabra' : 'palabras'}`;
+    elements.download.disabled = !text.trim();
+  }
+
+  function setRangeFill(input) {
+    const min = Number(input.min);
+    const max = Number(input.max);
+    const value = Number(input.value);
+    const percentage = ((value - min) / (max - min)) * 100;
+    input.style.setProperty('--range-progress', `${percentage}%`);
+  }
+
+  function updateSettingsLabels() {
+    const words = Number(elements.wordsRange.value);
+    const pause = Number(elements.pauseRange.value);
+    const rate = Number(elements.rateRange.value);
+    elements.wordsValue.textContent = `${words} ${words === 1 ? 'palabra' : 'palabras'}`;
+    elements.pauseValue.textContent = `${pause.toFixed(1)} s`;
+    elements.rateValue.textContent = `${rate.toFixed(1)}×`;
+    [elements.wordsRange, elements.pauseRange, elements.rateRange].forEach(setRangeFill);
+    document.querySelectorAll('[data-words]').forEach((button) => {
+      button.classList.toggle('active', Number(button.dataset.words) === words);
+    });
+    updateStats();
+  }
+
+  function updatePlaybackUI() {
+    const active = state.status === 'playing' || state.status === 'paused';
+    const hasBlocks = state.blocks.length > 0;
+    elements.play.disabled = !elements.text.value.trim() || state.status === 'playing';
+    elements.play.querySelector('span').textContent = state.status === 'paused' ? 'Reanudar lectura' : state.status === 'finished' ? 'Volver a escuchar' : 'Comenzar lectura';
+    elements.play.querySelector('svg').innerHTML = state.status === 'paused' ? '<path d="M8 5h3v14H8zM15 5h3v14h-3z"/>' : '<path d="m8 5 11 7-11 7z"/>';
+    elements.pause.disabled = state.status !== 'playing';
+    elements.pause.innerHTML = state.status === 'paused'
+      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg> Reanudar'
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h3v14H8zM15 5h3v14h-3z"/></svg> Pausar';
+    elements.stop.disabled = !active && state.status !== 'finished';
+    elements.repeat.disabled = !hasBlocks || state.status === 'idle' || state.status === 'stopped';
+    elements.skip.disabled = !hasBlocks || state.status === 'idle' || state.status === 'stopped' || state.status === 'finished';
+
+    const statusMap = {
+      idle: ['En espera', 'muted'], playing: ['Leyendo ahora', 'live'], paused: ['En pausa', 'paused'],
+      stopped: ['Detenido', 'muted'], finished: ['Lectura completada', 'done'], error: ['No se pudo reproducir', 'error'],
+    };
+    const [label, type] = statusMap[state.status] || statusMap.idle;
+    const dotClass = type === 'live' || type === 'done' ? '' : 'muted';
+    elements.sessionStatus.innerHTML = `<span class="status-dot ${dotClass}"></span>${label}`;
+    if (type === 'live') elements.sessionStatus.querySelector('.status-dot').style.background = 'var(--good)';
+    if (type === 'paused') elements.sessionStatus.querySelector('.status-dot').style.background = 'var(--accent)';
+    if (type === 'error') elements.sessionStatus.querySelector('.status-dot').style.background = '#f08d9a';
+  }
+
+  function updateProgress() {
+    const total = state.blocks.length;
+    const percent = total ? Math.round((state.completed / total) * 100) : 0;
+    elements.progressFill.style.width = `${percent}%`;
+    elements.progressGlow.style.width = `${percent}%`;
+    elements.progressPercent.textContent = `${percent}%`;
+    elements.completedLabel.textContent = `${state.completed} de ${total} ${total === 1 ? 'bloque completado' : 'bloques completados'}`;
+    if (!total) elements.progressLabel.textContent = 'Aún no has comenzado';
+    else if (state.status === 'finished') elements.progressLabel.textContent = 'Has terminado todos los bloques';
+    else if (state.status === 'stopped') elements.progressLabel.textContent = 'Lectura detenida';
+    else if (state.status === 'idle') elements.progressLabel.textContent = `${total} bloques preparados`;
+    else elements.progressLabel.textContent = `Bloque ${Math.min(state.index + 1, total)} de ${total}`;
+  }
+
+  function updateCurrentBlock() {
+    const block = state.blocks[state.index];
+    if (!block) {
+      if (state.status === 'finished') {
+        elements.currentBlockLabel.textContent = 'SESIÓN COMPLETADA';
+        elements.currentBlockText.textContent = 'Terminaste todo el texto. Buen trabajo.';
+      } else if (state.status === 'stopped') {
+        elements.currentBlockLabel.textContent = 'LECTURA DETENIDA';
+        elements.currentBlockText.textContent = 'Puedes comenzar de nuevo cuando estés listo.';
+      } else {
+        elements.currentBlockLabel.textContent = 'EL BLOQUE ACTUAL APARECERÁ AQUÍ';
+        elements.currentBlockText.textContent = 'Cuando inicies la lectura, verás el fragmento que se está reproduciendo.';
+      }
+      return;
+    }
+    elements.currentBlockLabel.textContent = `BLOQUE ${state.index + 1} · ${block.wordCount} ${block.wordCount === 1 ? 'PALABRA' : 'PALABRAS'}`;
+    elements.currentBlockText.textContent = block.text;
+  }
+
+  function refreshSessionUI() {
+    updatePlaybackUI();
+    updateProgress();
+    updateCurrentBlock();
+  }
+
+  function populateVoices() {
+    if (!synth) {
+      elements.voice.innerHTML = '<option value="">Voz no compatible</option>';
+      elements.voiceStatus.textContent = 'Este navegador no admite lectura en voz alta.';
+      return;
+    }
+    const voices = synth.getVoices();
+    if (!voices.length) return;
+    state.voices = voices;
+    const previous = elements.voice.value;
+    elements.voice.innerHTML = '';
+    const sorted = [...voices].sort((a, b) => {
+      const aSpanish = /^es([-_]|$)/i.test(a.lang) ? 0 : 1;
+      const bSpanish = /^es([-_]|$)/i.test(b.lang) ? 0 : 1;
+      return aSpanish - bSpanish || a.name.localeCompare(b.name);
+    });
+    sorted.forEach((voice) => {
+      const option = document.createElement('option');
+      option.value = voice.voiceURI;
+      option.textContent = `${voice.name} · ${voice.lang}${voice.default ? ' · predeterminada' : ''}`;
+      elements.voice.appendChild(option);
+    });
+    const matching = sorted.find((voice) => voice.voiceURI === previous)
+      || sorted.find((voice) => /^es([-_]|$)/i.test(voice.lang))
+      || sorted.find((voice) => voice.default)
+      || sorted[0];
+    if (matching) elements.voice.value = matching.voiceURI;
+    elements.voiceStatus.textContent = `${voices.length} ${voices.length === 1 ? 'voz disponible' : 'voces disponibles'} en este dispositivo`;
+  }
+
+  function selectedVoice() {
+    return state.voices.find((voice) => voice.voiceURI === elements.voice.value) || null;
+  }
+
+  function clearTimer() {
+    if (state.timer !== null) window.clearTimeout(state.timer);
+    state.timer = null;
+  }
+
+  function finishSession() {
+    clearTimer();
+    state.awaitingNext = false;
+    state.status = 'finished';
+    state.completed = state.blocks.length;
+    state.index = Math.max(0, state.blocks.length - 1);
+    state.currentUtterance = null;
+    refreshSessionUI();
+    showToast('Lectura completada. ¡Buen trabajo!');
+  }
+
+  function scheduleNext() {
+    const block = state.blocks[state.index];
+    if (!block || state.index >= state.blocks.length - 1) {
+      finishSession();
+      return;
+    }
+    const basePause = Number(elements.pauseRange.value) * 1000;
+    const paragraphPause = elements.paragraphToggle.checked && block.paragraphEnd ? 1000 : 0;
+    state.awaitingNext = true;
+    state.timer = window.setTimeout(() => {
+      state.timer = null;
+      state.awaitingNext = false;
+      if (state.status === 'playing') playBlock(state.index + 1);
+    }, basePause + paragraphPause);
+  }
+
+  function playBlock(index) {
+    if (!synth || !state.blocks.length) return;
+    clearTimer();
+    state.awaitingNext = false;
+    if (index >= state.blocks.length) {
+      finishSession();
+      return;
+    }
+    state.index = index;
+    state.status = 'playing';
+    refreshSessionUI();
+    const block = state.blocks[index];
+    const utterance = new SpeechSynthesisUtterance(block.text);
+    const voice = selectedVoice();
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    } else {
+      utterance.lang = 'es-ES';
+    }
+    utterance.rate = Number(elements.rateRange.value);
+    utterance.pitch = 1;
+    utterance.onend = () => {
+      if (state.currentUtterance !== utterance) return;
+      state.completed = Math.max(state.completed, index + 1);
+      state.currentUtterance = null;
+      updateProgress();
+      if (state.status === 'playing') scheduleNext();
+      else if (state.status === 'paused') state.awaitingNext = true;
+    };
+    utterance.onerror = (event) => {
+      if (state.currentUtterance !== utterance) return;
+      state.currentUtterance = null;
+      if (event.error === 'canceled' || event.error === 'interrupted') return;
+      clearTimer();
+      state.status = 'error';
+      refreshSessionUI();
+      showToast('La voz del navegador tuvo un problema. Prueba otra voz.');
+    };
+    state.currentUtterance = utterance;
+    try {
+      synth.speak(utterance);
+    } catch (error) {
+      state.status = 'error';
+      refreshSessionUI();
+      showToast('No se pudo iniciar la lectura en este navegador.');
+    }
+  }
+
+  function startSession() {
+    const text = elements.text.value.trim();
+    if (!text) {
+      showToast('Primero escribe o pega un texto para leer.');
+      elements.text.focus();
+      return;
+    }
+    if (!synth) {
+      showToast('Tu navegador no admite la función de lectura en voz alta.');
+      return;
+    }
+    stopSpeechOnly();
+    state.blocks = makeBlocks(text, Number(elements.wordsRange.value));
+    state.index = 0;
+    state.completed = 0;
+    state.status = 'playing';
+    refreshSessionUI();
+    playBlock(0);
+  }
+
+  function stopSpeechOnly() {
+    clearTimer();
+    if (synth) synth.cancel();
+    state.currentUtterance = null;
+    state.awaitingNext = false;
+  }
+
+  function pauseSession() {
+    if (state.status !== 'playing') return;
+    state.status = 'paused';
+    if (state.timer !== null) clearTimer();
+    else if (synth) synth.pause();
+    refreshSessionUI();
+  }
+
+  function resumeSession() {
+    if (state.status !== 'paused') return;
+    state.status = 'playing';
+    if (state.awaitingNext) {
+      const block = state.blocks[state.index];
+      const basePause = Number(elements.pauseRange.value) * 1000;
+      const paragraphPause = elements.paragraphToggle.checked && block && block.paragraphEnd ? 1000 : 0;
+      state.timer = window.setTimeout(() => {
+        state.timer = null;
+        state.awaitingNext = false;
+        playBlock(state.index + 1);
+      }, basePause + paragraphPause);
+    } else if (synth) {
+      synth.resume();
+    }
+    refreshSessionUI();
+  }
+
+  function stopSession() {
+    stopSpeechOnly();
+    state.status = 'stopped';
+    state.completed = 0;
+    state.index = 0;
+    refreshSessionUI();
+  }
+
+  function repeatBlock() {
+    if (!state.blocks.length || state.status === 'idle' || state.status === 'stopped') return;
+    stopSpeechOnly();
+    state.completed = Math.min(state.completed, state.index);
+    state.status = 'playing';
+    playBlock(state.index);
+  }
+
+  function skipBlock() {
+    if (state.status !== 'playing' && state.status !== 'paused') return;
+    const next = state.index + 1;
+    stopSpeechOnly();
+    state.completed = Math.max(state.completed, state.index + 1);
+    if (next >= state.blocks.length) finishSession();
+    else {
+      state.status = 'playing';
+      playBlock(next);
+    }
+  }
+
+  function resetSessionToIdle() {
+    stopSpeechOnly();
+    state.blocks = [];
+    state.index = 0;
+    state.completed = 0;
+    state.status = 'idle';
+    elements.progressFill.style.width = '0%';
+    elements.progressGlow.style.width = '0%';
+    refreshSessionUI();
+  }
+
+  function downloadText() {
+    const text = elements.text.value;
+    if (!text.trim()) return;
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'mi-texto-vozpausa.txt';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    showToast('Archivo de texto guardado.');
+  }
+
+  async function pasteText() {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) {
+        showToast('El portapapeles está vacío.');
+        return;
+      }
+      const start = elements.text.selectionStart;
+      const end = elements.text.selectionEnd;
+      elements.text.setRangeText(text, start, end, 'end');
+      elements.text.dispatchEvent(new Event('input', { bubbles: true }));
+      showToast('Texto pegado.');
+    } catch (error) {
+      showToast('No se pudo acceder al portapapeles. Usa Ctrl + V.');
+    }
+  }
+
+  async function importFile(file) {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('El archivo supera el límite de 2 MB.');
+      elements.file.value = '';
+      return;
+    }
+    try {
+      const content = await file.text();
+      elements.text.value = content;
+      elements.text.dispatchEvent(new Event('input', { bubbles: true }));
+      resetSessionToIdle();
+      showToast(`Se cargó ${file.name}.`);
+    } catch (error) {
+      showToast('No se pudo leer ese archivo. Prueba con un .txt.');
+    }
+    elements.file.value = '';
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle('light-theme');
+    const light = document.body.classList.contains('light-theme');
+    try { localStorage.setItem('vozpausa-theme', light ? 'light' : 'dark'); } catch (_) { /* almacenamiento opcional */ }
+  }
+
+  function loadTheme() {
+    try {
+      if (localStorage.getItem('vozpausa-theme') === 'light') document.body.classList.add('light-theme');
+    } catch (_) { /* almacenamiento opcional */ }
+  }
+
+  // Eventos de texto y ajustes
+  elements.text.addEventListener('input', () => {
+    updateStats();
+    // Si el usuario modifica el texto, la sesión anterior deja de representar el contenido actual.
+    if (state.status !== 'idle' || state.blocks.length) resetSessionToIdle();
+  });
+  elements.wordsRange.addEventListener('input', updateSettingsLabels);
+  elements.pauseRange.addEventListener('input', updateSettingsLabels);
+  elements.rateRange.addEventListener('input', updateSettingsLabels);
+  document.querySelectorAll('[data-words]').forEach((button) => {
+    button.addEventListener('click', () => {
+      elements.wordsRange.value = button.dataset.words;
+      updateSettingsLabels();
+    });
+  });
+  elements.play.addEventListener('click', () => {
+    if (state.status === 'paused') resumeSession();
+    else startSession();
+  });
+  elements.pause.addEventListener('click', () => state.status === 'paused' ? resumeSession() : pauseSession());
+  elements.stop.addEventListener('click', stopSession);
+  elements.repeat.addEventListener('click', repeatBlock);
+  elements.skip.addEventListener('click', skipBlock);
+  $('pasteButton').addEventListener('click', pasteText);
+  $('sampleButton').addEventListener('click', () => {
+    elements.text.value = sampleText;
+    elements.text.dispatchEvent(new Event('input', { bubbles: true }));
+    showToast('Ejemplo de estudio añadido.');
+  });
+  $('clearButton').addEventListener('click', () => {
+    elements.text.value = '';
+    elements.text.dispatchEvent(new Event('input', { bubbles: true }));
+    elements.text.focus();
+    showToast('Texto borrado.');
+  });
+  elements.file.addEventListener('change', (event) => importFile(event.target.files[0]));
+  elements.download.addEventListener('click', downloadText);
+  $('themeButton').addEventListener('click', toggleTheme);
+  elements.voice.addEventListener('change', () => {
+    const voice = selectedVoice();
+    if (voice) elements.voiceStatus.textContent = `Voz seleccionada: ${voice.lang}`;
+  });
+
+  // Atajos: no interceptar la escritura dentro de campos de texto.
+  document.addEventListener('keydown', (event) => {
+    const target = event.target;
+    const isTyping = target && (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.isContentEditable);
+    if (event.code === 'Escape') {
+      if (state.status === 'playing' || state.status === 'paused') stopSession();
+      return;
+    }
+    if (event.code === 'Space' && !isTyping) {
+      event.preventDefault();
+      if (state.status === 'playing') pauseSession();
+      else if (state.status === 'paused') resumeSession();
+      else startSession();
+    }
+  });
+
+  loadTheme();
+  updateSettingsLabels();
+  updateStats();
+  refreshSessionUI();
+  populateVoices();
+  if (synth) synth.addEventListener ? synth.addEventListener('voiceschanged', populateVoices) : (synth.onvoiceschanged = populateVoices);
+  window.addEventListener('beforeunload', () => { if (synth) synth.cancel(); });
+})();
+
+  </script>
+</body>
+</html>
