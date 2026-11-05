@@ -458,6 +458,7 @@ body.light-theme .range-input { background: linear-gradient(90deg, var(--accent)
     elements.blockEstimate.textContent = blocks.toLocaleString('es-ES');
     elements.wordCountBadge.textContent = `${words} ${words === 1 ? 'palabra' : 'palabras'}`;
     elements.download.disabled = !text.trim();
+    elements.play.disabled = !text.trim() || state.status === 'playing';
   }
 
   function setRangeFill(input) {
